@@ -5,7 +5,6 @@
 #include "include/models.h"
 #include "include/Util.h"
 
-// TODO: consider changing this to use the relative path
 static const char* cardImages[] = {
 		"resources/0_0.png", "resources/1_2.png", "resources/1_5.png",
 		"resources/2_2.png", "resources/2_5.png", "resources/3_3.png",
@@ -153,6 +152,9 @@ static void DeterminePlayerTurn() {
 	if (randomValue < 5) isPlayer1Turn = true;
 	else
 		isPlayer1Turn = false;
+
+	// TODO: remove this when done testing
+	isPlayer1Turn = true;
 }
 
 static void DestroyAll() {
@@ -180,6 +182,7 @@ static void SetupDrawing() {
 }
 
 static void InitiateObjectsPositions() {
+	// drawing players cards
 	std::vector<Card*> player1Cards = *(*(players->data()))->GetCards();
 	unsigned int player1CardsSize = player1Cards.size();
 	int xOffset = 0;
@@ -203,6 +206,89 @@ static void InitiateObjectsPositions() {
 		card->SetX(xPos);
 		xOffset += card->GetWidth();
 	}
+
+}
+
+static Card* IsIntersectingWithObjects(Vector2& mousePos, std::vector<Card*>* cards) {
+
+	unsigned int size = cards->size();
+
+	for(int i = 0; i < size; i++) {
+		Card *card = (*cards)[i];
+
+		if(
+				(mousePos.x >= card->GetX() && mousePos.x <= (card->GetWidth() + card->GetX())) &&
+				(mousePos.y >= card->GetY() && mousePos.y <= (card->GetHeight() + card->GetY()))
+				) {
+			return card;
+		}
+	}
+
+	return NULL;
+}
+
+static CardInfo IsCardCombitableWith(Card* card) {
+	CardInfo cardInfo;
+	cardInfo.card = NULL;
+	int headUpValue = groundCards.GetHead()->GetUpValue();
+	int tailLowValue = groundCards.GetTail()->GetLowValue();
+
+	// TODO: do the checks for UP And Down Directions as well
+	// TODO: if there is more than one match ask the user which card to attach to
+
+	// head checks
+	if(groundCards.GetHead()->GetDirection() == CardDirection::Left) {
+		if(headUpValue == card->GetUpValue()) {
+			cardInfo.card = groundCards.GetHead();
+			cardInfo.isHead = true;
+			card->SetDirection(CardDirection::Right);
+		}
+		else if(headUpValue == card->GetLowValue()) {
+			cardInfo.card = groundCards.GetHead();
+			cardInfo.isHead = true;
+			card->SetDirection(CardDirection::Left);
+		}
+	}
+	else if(groundCards.GetHead()->GetDirection() == CardDirection::Right) {
+		int headLowValue = groundCards.GetHead()->GetLowValue();
+		if(headLowValue == card->GetUpValue()) {
+			cardInfo.card = groundCards.GetHead();
+			cardInfo.isHead = true;
+			card->SetDirection(CardDirection::Right);
+		}
+		else if(headLowValue == card->GetLowValue()) {
+			cardInfo.card = groundCards.GetHead();
+			cardInfo.isHead = true;
+			card->SetDirection(CardDirection::Left);
+		}
+	} // tail checks
+	else if(groundCards.GetTail()->GetDirection() == CardDirection::Left) {
+		if(tailLowValue == card->GetUpValue()) {
+			cardInfo.card = groundCards.GetTail();
+			cardInfo.isHead = false;
+			card->SetDirection(CardDirection::Left);
+		}
+		else if(tailLowValue == card->GetLowValue()) {
+			cardInfo.card = groundCards.GetTail();
+			cardInfo.isHead = false;
+			card->SetDirection(CardDirection::Right);
+		}
+	}
+	else if(groundCards.GetTail()->GetDirection() == CardDirection::Right) {
+		int tailUpValue = groundCards.GetTail()->GetUpValue();
+		if(tailUpValue == card->GetUpValue()) {
+			cardInfo.card = groundCards.GetTail();
+			cardInfo.isHead = false;
+			card->SetDirection(CardDirection::Left);
+		}
+		else if(tailUpValue == card->GetLowValue()) {
+			cardInfo.card = groundCards.GetTail();
+			cardInfo.isHead = false;
+			card->SetDirection(CardDirection::Right);
+		}
+	}
+
+	return cardInfo;
 }
 
 static void StartGame() {
@@ -223,11 +309,60 @@ static void StartGame() {
 
 }
 
+void OnMouseClickDetected(Vector2 mousePos) {
+	if(isPlayer1Turn) {
+		Card* card = IsIntersectingWithObjects(mousePos, (*(players->data()))->GetCards());
+		if(card != NULL) {
+			if(card->GetIsHighlighted()) {
+				if(groundCards.GetHead() == NULL) {
+					// when no cards are on the ground
+					int cardXPos = (Width - card->GetWidth()) / 2;
+					int cardYPos = (Height - card->GetHeight()) / 2;
+					card->SetX(cardXPos);
+					card->SetY(cardYPos);
+					groundCards.Append(card);
+					(*players)[0]->PlayCard(card);
+				}
+				else {
+					// ground contains cards
+					CardInfo cardInfo = IsCardCombitableWith(card);
+					if(cardInfo.card != NULL) {
+						(*players)[0]->PlayCard(card);
+
+						if(cardInfo.isHead) {
+							std::cout << "Card to be played: " << card->GetUpValue() << "|" << card->GetLowValue() <<
+																", head card: " << groundCards.GetHead()->GetUpValue() << "|" <<
+																groundCards.GetHead()->GetLowValue()
+																<< std::endl;
+							// attach to head
+							card->AdaptWithCard(cardInfo.card, cardInfo.isHead, Width, Height);
+							groundCards.Prepend(card);
+						}
+						else {
+							// attach to tail
+							card->AdaptWithCard(cardInfo.card, cardInfo.isHead, Width, Height);
+							groundCards.Append(card);
+						}
+					}
+					else {
+						std::cout << "No Cards are Compatible with " << card->GetUpValue() << "|" << card->GetLowValue() << std::endl;
+					}
+				}
+			}
+			else {
+				(*players)[0]->SelectCard(card);
+			}
+		}
+	}
+}
+
 int main() {
 
 	StartGame();
 
 	Drawer drawer;
+
+	InputDetector inputDetector;
 
 	// main loop
 	while(!WindowShouldClose()) {
@@ -243,8 +378,21 @@ int main() {
 		drawer.DrawPlayersCards((*players)[1]->GetCards());
 
 		// drawing ground cards
-		//drawer.DrawGroundCards(groundCards);
+		if(groundCards.GetHead() != NULL) {
+			drawer.DrawGroundCards(groundCards);
+		}
 
+		// detecting input events
+		inputDetector.StartInputEventsCapture((OnInputEventDetected)OnMouseClickDetected);
+
+		/*if(isPlayer1Turn) {
+			if(groundCards.GetHead() != NULL) {
+				(*players)[0]->EnableCardsThatAreCombatibleWith(groundCards.GetHead(), groundCards.GetTail());
+			}
+			else {
+				(*players)[0]->EnableAllCards();
+			}
+		}*/
 
 		EndDrawing();
 	}

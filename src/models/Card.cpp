@@ -1,5 +1,7 @@
 #include "../include/Card.h"
 
+#include <cmath>
+
 void Card::SetX(float x) 
 {
 	this->x = x;
@@ -44,7 +46,8 @@ Card* Card::getPrev() {
 
 void Card::Draw()
 {
-	DrawTexture(texture, x, y, WHITE);
+	//DrawTextureEx(texture, (Vector2){x, y}, rotateAngel, 1, WHITE);
+	DrawTexture(texture, x, y,WHITE);
 }
 
 void Card::Move(float sX, float sY) {
@@ -66,4 +69,63 @@ int Card::GetWidth() {
 
 int Card::GetHeight() {
 	return this->height;
+}
+
+void Card::SetIsHighlighted(bool value) {
+	this->isHighlighted = value;
+}
+
+bool Card::GetIsHighlighted() {
+	return isHighlighted;
+}
+
+float Card::GetRotatationAngle() {
+	return this->rotateAngel;
+}
+
+void Card::SetRotationAngle(float value) {
+	rotateAngel = value;
+}
+
+void Card::SetDirection(CardDirection direction) {
+	this->direction = direction;
+}
+
+CardDirection Card::GetDirection() {
+	return this->direction;
+}
+
+void Card::AdaptWithCard(Card *card, bool isHead, int screenWidth, int screenHight) {
+	if(card->direction != CardDirection::UP && card->direction != CardDirection::Down) {
+		if(isHead) {
+			if(this->direction == CardDirection::Right) {
+				// right direction
+				int newXPos = card->GetX() - this->GetWidth();
+				int newYPos = (screenHight - card->GetHeight()) / 2;
+				this->SetX(newXPos);
+				this->SetY(newYPos);
+			}
+			else {
+				// left direction
+				int newXPos = card->GetX() - this->GetWidth();
+				int newYPos = (screenHight - this->GetHeight()) / 2;
+				this->SetX(newXPos);
+				this->SetY(newYPos);
+			}
+		}
+		else {
+			if(this->direction == CardDirection::Left) {
+				int newXPos = card->GetX() + this->GetHeight();
+				int newYPos = (screenHight - this->GetHeight()) / 2;
+				this->SetX(newXPos);
+				this->SetY(newYPos);
+			}
+			else {
+				int newXPos = card->GetX();
+				int newYPos = (screenHight - this->GetHeight()) / 2;
+				this->SetX(newXPos);
+				this->SetY(newYPos);
+			}
+		}
+	}
 }

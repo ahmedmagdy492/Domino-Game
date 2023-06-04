@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "GameObject.h"
+#include "CardDirection.h"
 #include "raylib.h"
 
 class Card : GameObject
@@ -13,6 +14,9 @@ class Card : GameObject
 	Card* prev;
 	bool isDisabled;
 	Texture2D texture;
+	bool isHighlighted;
+	float rotateAngel;
+	CardDirection direction;
 
 	public:
 	Card(unsigned short uppValue, unsigned short lowValue, const char* imagePath)
@@ -27,6 +31,9 @@ class Card : GameObject
 		lowerValue = lowValue;
 		isDisabled = true;
 		texture = LoadTexture(imagePath);
+		isHighlighted = false;
+		rotateAngel = 0;
+		direction = CardDirection::Left;
 	}
 
 	~Card() {
@@ -49,4 +56,11 @@ class Card : GameObject
 	void Draw();
 	void SetIsDisabled(bool value);
 	bool GetIsDisabled();
+	void SetIsHighlighted(bool value);
+	bool GetIsHighlighted();
+	float GetRotatationAngle();
+	void SetRotationAngle(float value);
+	void AdaptWithCard(Card *card, bool isHead, int screenWidth, int screenHight);
+	void SetDirection(CardDirection direction);
+	CardDirection GetDirection();
 };
