@@ -1,7 +1,5 @@
 #include "../include/Card.h"
 
-#include <cmath>
-
 void Card::SetX(float x) 
 {
 	this->x = x;
@@ -46,8 +44,13 @@ Card* Card::getPrev() {
 
 void Card::Draw()
 {
-	//DrawTextureEx(texture, (Vector2){x, y}, rotateAngel, 1, WHITE);
-	DrawTexture(texture, x, y,WHITE);
+	if(rotateAngel != 0) {
+		DrawTexturePro(texture, Rectangle{0, 0, (float)width, (float)height},
+					Rectangle{x, y, (float)width, (float)height}, Vector2{(float)width/2, (float)height/2}, rotateAngel, WHITE);
+	}
+	else {
+		DrawTexture(texture, x, y, WHITE);
+	}
 }
 
 void Card::Move(float sX, float sY) {
@@ -95,19 +98,21 @@ CardDirection Card::GetDirection() {
 	return this->direction;
 }
 
+// TODO: remove this
+/*
 void Card::AdaptWithCard(Card *card, bool isHead, int screenWidth, int screenHight) {
 	if(card->direction != CardDirection::UP && card->direction != CardDirection::Down) {
 		if(isHead) {
 			if(this->direction == CardDirection::Right) {
 				// right direction
-				int newXPos = card->GetX() - this->GetWidth();
+				int newXPos = card->GetX() - this->GetHeight();
 				int newYPos = (screenHight - card->GetHeight()) / 2;
 				this->SetX(newXPos);
 				this->SetY(newYPos);
 			}
 			else {
 				// left direction
-				int newXPos = card->GetX() - this->GetWidth();
+				int newXPos = card->GetX() - this->GetHeight();
 				int newYPos = (screenHight - this->GetHeight()) / 2;
 				this->SetX(newXPos);
 				this->SetY(newYPos);
@@ -129,3 +134,4 @@ void Card::AdaptWithCard(Card *card, bool isHead, int screenWidth, int screenHig
 		}
 	}
 }
+*/

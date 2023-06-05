@@ -2,24 +2,24 @@
 
 #include <iostream>
 
-#include "GameObject.h"
+#include "SurfaceTexture.h"
 #include "CardDirection.h"
 #include "raylib.h"
 
-class Card : GameObject
+class Card : public SurfaceTexture
 {
 	private:
 	unsigned short upperValue, lowerValue;
 	Card* next;
 	Card* prev;
 	bool isDisabled;
-	Texture2D texture;
 	bool isHighlighted;
 	float rotateAngel;
 	CardDirection direction;
 
 	public:
 	Card(unsigned short uppValue, unsigned short lowValue, const char* imagePath)
+	: SurfaceTexture(imagePath)
 	{
 		width = 50;
 		height = 100;
@@ -30,14 +30,9 @@ class Card : GameObject
 		upperValue = uppValue;
 		lowerValue = lowValue;
 		isDisabled = true;
-		texture = LoadTexture(imagePath);
 		isHighlighted = false;
 		rotateAngel = 0;
 		direction = CardDirection::Left;
-	}
-
-	~Card() {
-		UnloadTexture(texture);
 	}
 
 	int GetWidth();
@@ -60,7 +55,7 @@ class Card : GameObject
 	bool GetIsHighlighted();
 	float GetRotatationAngle();
 	void SetRotationAngle(float value);
-	void AdaptWithCard(Card *card, bool isHead, int screenWidth, int screenHight);
+	//void AdaptWithCard(Card *card, bool isHead, int screenWidth, int screenHight);
 	void SetDirection(CardDirection direction);
 	CardDirection GetDirection();
 };

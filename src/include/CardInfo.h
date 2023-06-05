@@ -4,5 +4,6 @@
 class CardInfo {
 public:
 	bool isHead;
-	Card* card; // will be null if no cards are compatible
+	Card* card1; // will be null if no cards are compatible
+	Card* card2;
 };
