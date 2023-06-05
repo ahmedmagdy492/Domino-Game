@@ -155,6 +155,19 @@ static void DeterminePlayerTurn() {
 	isPlayer1Turn = true;
 }
 
+static void SetupRound() {
+	winScore = 100;
+	CreatePlayers();
+	DeterminePlayerTurn();
+	CreateCards();
+}
+
+static void StartRound() {
+	DistributeCards();
+	positioner.InitiateObjectsPositions(Width, Height, players);
+	isPlaying = true;
+}
+
 static void DestroyAll() {
 	//delete players[0].data();
 	//delete players[1].data();
@@ -166,25 +179,49 @@ static void DestroyAll() {
 
 	delete cards;
 }
-/*
-static Card* IsIntersectingWithObjects(Vector2& mousePos, std::vector<Card*>* cards) {
 
-	unsigned int size = cards->size();
 
-	for(int i = 0; i < size; i++) {
-		Card *card = (*cards)[i];
+int main() {
 
-		if(
-				(mousePos.x >= card->GetX() && mousePos.x <= (card->GetWidth() + card->GetX())) &&
-				(mousePos.y >= card->GetY() && mousePos.y <= (card->GetHeight() + card->GetY()))
-				) {
-			return card;
-		}
+	InputDetector inputDetector;
+
+	// register all event handlers
+
+	Renderer renderer(Width, Height, &inputDetector);
+
+	renderer.InitDrawing();
+
+	// load textures
+	SurfaceTexture background("resources/bg.png");
+	renderer.AddObjectToDraw(&background);
+
+	SetupRound();
+
+	StartRound();
+
+	// adding objects
+	std::vector<Card*>* player1Cards = (*(players->data()))->GetCards();
+	unsigned int player1CardsSize = player1Cards->size();
+	std::vector<Card*>* computerCards = (*players)[1]->GetCards();
+	unsigned int computerCardsSize = computerCards->size();
+
+	for(int i = 0; i < player1CardsSize; i++) {
+		renderer.AddObjectToDraw((*player1Cards)[i]);
 	}
 
-	return NULL;
+	for(int i = 0; i < computerCardsSize; i++) {
+		renderer.AddObjectToDraw((*computerCards)[i]);
+	}
+
+	renderer.StartRendering();
+
+	DestroyAll();
+
+	return 0;
 }
 
+
+/*
 static CardInfo IsCardCombitableWith(Card* card) {
 	CardInfo cardInfo;
 	cardInfo.card1 = NULL;
@@ -250,19 +287,6 @@ static CardInfo IsCardCombitableWith(Card* card) {
 	}
 
 	return cardInfo;
-}*/
-
-static void SetupRound() {
-	winScore = 100;
-	CreatePlayers();
-	DeterminePlayerTurn();
-	CreateCards();
-}
-
-static void StartRound() {
-	DistributeCards();
-	positioner.InitiateObjectsPositions(Width, Height, players);
-	isPlaying = true;
 }
 /*
 void OnMouseClickDetected(Vector2 mousePos) {
@@ -318,50 +342,3 @@ void OnMouseClickDetected(Vector2 mousePos) {
 	}
 }
 */
-int main() {
-
-	Renderer renderer(Width, Height);
-
-	renderer.InitDrawing();
-
-	// load textures
-	SurfaceTexture background("resources/bg.png");
-	renderer.AddObjectToDraw(&background);
-
-	SetupRound();
-
-	StartRound();
-
-	std::vector<Card*>* player1Cards = (*(players->data()))->GetCards();
-	unsigned int player1CardsSize = player1Cards->size();
-	std::vector<Card*>* computerCards = (*players)[1]->GetCards();
-	unsigned int computerCardsSize = computerCards->size();
-
-	for(int i = 0; i < player1CardsSize; i++) {
-		renderer.AddObjectToDraw((*player1Cards)[i]);
-	}
-
-	for(int i = 0; i < computerCardsSize; i++) {
-		renderer.AddObjectToDraw((*computerCards)[i]);
-	}
-
-	renderer.StartRendering();
-
-	DestroyAll();
-
-	/*// drawing player 1 cards
-	drawer.DrawPlayersCards((*(players->data()))->GetCards());
-
-	// drawing computer cards
-	drawer.DrawPlayersCards((*players)[1]->GetCards());
-
-	// drawing ground cards
-	if(groundCards.GetHead() != NULL) {
-		drawer.DrawGroundCards(groundCards);
-	}
-
-	// detecting input events
-	inputDetector.StartInputEventsCapture((OnInputEventDetected)OnMouseClickDetected);*/
-
-	return 0;
-}

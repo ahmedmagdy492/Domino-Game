@@ -4,3 +4,4 @@
 #include "Renderer.h"
 #include "InputDetector.h"
 #include "Positioner.h"
+#include "CompatabilityChecker.h"

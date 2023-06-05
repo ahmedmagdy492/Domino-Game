@@ -6,3 +6,4 @@
 #include "CardInfo.h"
 #include "CardDirection.h"
 #include "SurfaceTexture.h"
+#include "RectShape.h"

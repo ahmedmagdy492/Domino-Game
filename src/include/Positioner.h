@@ -32,4 +32,22 @@ public:
 			xOffset += card->GetWidth();
 		}
 	}
+
+	Card* IsIntersectingWithObjects(Vector2& mousePos, std::vector<Card*>* cards) {
+
+		unsigned int size = cards->size();
+
+		for(int i = 0; i < size; i++) {
+			Card *card = (*cards)[i];
+
+			if(
+					(mousePos.x >= card->GetX() && mousePos.x <= (card->GetWidth() + card->GetX())) &&
+					(mousePos.y >= card->GetY() && mousePos.y <= (card->GetHeight() + card->GetY()))
+					) {
+				return card;
+			}
+		}
+
+		return NULL;
+	}
 };

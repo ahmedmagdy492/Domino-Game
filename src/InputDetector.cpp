@@ -2,8 +2,16 @@
 
 #include "./include/raylib.h"
 
-void InputDetector::StartInputEventsCapture(OnInputEventDetected callback) {
+void InputDetector::SubscribeToMouseEvents(OnInputEventDetected callback) {
+	mouseEventsSubscribers->push_back(callback);
+}
+
+void InputDetector::StartInputEventsCapture() {
 	if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-		callback(GetMousePosition());
+		unsigned int size = mouseEventsSubscribers->size();
+
+		for(int i = 0;i < size; i++) {
+			(*mouseEventsSubscribers)[i](GetMousePosition());
+		}
 	}
 }

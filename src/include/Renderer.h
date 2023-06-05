@@ -2,6 +2,7 @@
 
 #include "GameObject.h"
 #include "raylib.h"
+#include "InputDetector.h"
 #include <vector>
 
 class Renderer
@@ -9,9 +10,11 @@ class Renderer
 private:
 	int width;
 	int height;
+	InputDetector* inputDetector;
 	std::vector<GameObject*>* objectsToRender;
 public:
-	Renderer(int width, int height) {
+	Renderer(int width, int height, InputDetector* inputDetector)
+	: inputDetector(inputDetector) {
 		this->width = width;
 		this->height = height;
 		objectsToRender = new std::vector<GameObject*>();
@@ -48,6 +51,8 @@ public:
 			BeginDrawing();
 
 			ClearBackground(RAYWHITE);
+
+			inputDetector->StartInputEventsCapture();
 
 			for(int i = 0; i < size; i++) {
 				GameObject* gameObj = (*objectsToRender)[i];

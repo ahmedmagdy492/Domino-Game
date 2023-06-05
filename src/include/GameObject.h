@@ -9,13 +9,14 @@ class GameObject
 	int id;
 
 	public:
+	GameObject() {
+		x = y = 0;
+		width = height = 0;
+		id = 0;
+	}
 	virtual void Move(float sX, float sY) = 0;
 
 	virtual void Draw() = 0;
-
-	void SetId(int id) {
-		this->id = id;
-	}
 
 	int GetId() {
 		return id;
