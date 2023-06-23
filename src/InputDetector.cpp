@@ -1,5 +1,7 @@
 #include "./include/InputDetector.h"
 
+#include <iostream>
+
 #include "./include/raylib.h"
 
 void InputDetector::SubscribeToMouseEvents(OnInputEventDetected callback) {

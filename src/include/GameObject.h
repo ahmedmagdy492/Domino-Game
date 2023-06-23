@@ -1,6 +1,8 @@
 #pragma once
 #include <iostream>
 
+#include "Helper.h"
+
 class GameObject
 {
 	protected:
@@ -12,7 +14,7 @@ class GameObject
 	GameObject() {
 		x = y = 0;
 		width = height = 0;
-		id = 0;
+		id = GetNextObjectId();
 	}
 	virtual void Move(float sX, float sY) = 0;
 

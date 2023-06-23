@@ -51,6 +51,10 @@ void Card::Draw()
 	else {
 		DrawTexture(texture, x, y, WHITE);
 	}
+
+	if(isHighlighted) {
+		DrawRectangleLines(x, y, width, height, RED);
+	}
 }
 
 void Card::Move(float sX, float sY) {

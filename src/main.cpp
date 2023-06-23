@@ -25,7 +25,8 @@ static bool isPlayer1Turn;
 static std::vector<Player*>* players;
 static std::vector<Card*>* cards;
 static LinkedList groundCards;
-static Positioner positioner;
+static Positioner positioner(Width, Height);
+static CompatabilityChecker comChecker;
 static bool isPlaying;
 static unsigned short winScore;
 
@@ -164,7 +165,7 @@ static void SetupRound() {
 
 static void StartRound() {
 	DistributeCards();
-	positioner.InitiateObjectsPositions(Width, Height, players);
+	positioner.InitiateObjectsPositions(players);
 	isPlaying = true;
 }
 
@@ -180,12 +181,108 @@ static void DestroyAll() {
 	delete cards;
 }
 
+void OnClickCardToHighlight(Vector2 mousePos) {
+	if(isPlayer1Turn) {
+		std::vector<Card*>* player1Cards = (*players)[0]->GetCards();
+		Card* card = positioner.IsIntersectingWithObjects(mousePos, player1Cards);
+		if(card != NULL) {
+			unsigned int cardsSize = player1Cards->size();
+
+			for(int i = 0;i < cardsSize; i++) {
+				(*player1Cards)[i]->SetIsHighlighted(false);
+			}
+
+			card->SetIsHighlighted(true);
+		}
+	}
+}
+
+void OnClickCardToPlay(Vector2 mousePos) {
+	if(isPlayer1Turn) {
+		std::vector<Card*>* player1Cards = (*players)[0]->GetCards();
+
+		unsigned int cardsSize = player1Cards->size();
+		Card* highlightedCard = NULL;
+
+		for(int i = 0;i < cardsSize; i++) {
+			if((*player1Cards)[i]->GetIsHighlighted() == true) {
+				highlightedCard = (*player1Cards)[i];
+				player1Cards->erase(player1Cards->begin()+i);
+				break;
+			}
+		}
+
+		if(highlightedCard != NULL) {
+
+			highlightedCard->SetIsHighlighted(false);
+
+			if(groundCards.GetHead() == NULL) {
+				highlightedCard->SetDirection(CardDirection::Left);
+				highlightedCard->SetRotationAngle(-90);
+				Vector2 vec;
+				positioner.SelectPosition(groundCards.GetHead(), true, &vec);
+				highlightedCard->SetX(vec.x);
+				highlightedCard->SetY(vec.y);
+				groundCards.Append(highlightedCard);
+				return;
+			}
+
+			// checking compatibilty
+			std::vector<CompatiblityResult*>* comResults = comChecker.CheckCardCompatiblity(highlightedCard, &groundCards);
+
+			if(comResults->size() == 1) {
+				// when there is only one match
+				highlightedCard->SetDirection((*comResults)[0]->GetDirection());
+				highlightedCard->SetRotationAngle((*comResults)[0]->GetRotateAngle());
+				Vector2 vec;
+				if(groundCards.GetHead() == groundCards.GetTail()) {
+
+				}
+				else if((*comResults)[0]->GetCard() == groundCards.GetHead()) {
+					positioner.SelectPosition((*comResults)[0]->GetCard(), true, &vec);
+					groundCards.Prepend(highlightedCard);
+				}
+				else {
+					positioner.SelectPosition((*comResults)[0]->GetCard(), false, &vec);
+					groundCards.Append(highlightedCard);
+				}
+
+				highlightedCard->SetX(vec.x);
+				highlightedCard->SetY(vec.y);
+			}
+			else if(comResults->size() == 2) {
+				// TODO: still need some work to be done
+				std::vector<Card*> headAndTail;
+				headAndTail.push_back(groundCards.GetHead());
+				headAndTail.push_back(groundCards.GetTail());
+				Card* card = positioner.IsIntersectingWithObjects(mousePos, &headAndTail);
+				Vector2 vec;
+				if(card != NULL) {
+					if(groundCards.GetHead() == card) {
+						groundCards.Prepend(highlightedCard);
+						positioner.SelectPosition(card, true, &vec);
+					}
+					else {
+						groundCards.Append(highlightedCard);
+						positioner.SelectPosition(card, false, &vec);
+					}
+
+					highlightedCard->SetX(vec.x);
+					highlightedCard->SetY(vec.y);
+				}
+			}
+		}
+	}
+}
+
 
 int main() {
 
 	InputDetector inputDetector;
 
 	// register all event handlers
+	inputDetector.SubscribeToMouseEvents(OnClickCardToPlay);
+	inputDetector.SubscribeToMouseEvents(OnClickCardToHighlight);
 
 	Renderer renderer(Width, Height, &inputDetector);
 
@@ -194,6 +291,13 @@ int main() {
 	// load textures
 	SurfaceTexture background("resources/bg.png");
 	renderer.AddObjectToDraw(&background);
+
+	Card* ptr = groundCards.GetHead();
+
+	while(ptr != NULL) {
+		renderer.AddObjectToDraw(ptr);
+		ptr = ptr->getNext();
+	}
 
 	SetupRound();
 
